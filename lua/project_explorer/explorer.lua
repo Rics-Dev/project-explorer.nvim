@@ -1,0 +1,99 @@
+local M = {}
+
+local has_telescope = pcall(require, "telescope")
+if not has_telescope then
+	return M
+end
+
+local finders = require("telescope.finders")
+local pickers = require("telescope.pickers")
+local telescope_config = require("telescope.config").values
+local actions = require("telescope.actions")
+local state = require("telescope.actions.state")
+local entry_display = require("telescope.pickers.entry_display")
+
+-- [Your existing code goes here, but rename the main function]
+
+----------
+-- Actions
+----------
+
+local function get_dev_projects()
+	local projects = {}
+	local handle = io.popen("find ~/dev -mindepth 2 -maxdepth 2 -type d")
+	if handle then
+		for line in handle:lines() do
+			table.insert(projects, line)
+		end
+		handle:close()
+	end
+	return projects
+end
+
+local function create_finder()
+	local results = get_dev_projects()
+
+	local displayer = entry_display.create({
+		separator = " ",
+		items = {
+			{
+				width = 30,
+			},
+			{
+				remaining = true,
+			},
+		},
+	})
+
+	local function make_display(entry)
+		return displayer({ entry.name, { entry.value, "Comment" } })
+	end
+
+	return finders.new_table({
+		results = results,
+		entry_maker = function(entry)
+			local name = vim.fn.fnamemodify(entry, ":t")
+			return {
+				display = make_display,
+				name = name,
+				value = entry,
+				ordinal = name .. " " .. entry,
+			}
+		end,
+	})
+end
+
+local function change_working_directory(prompt_bufnr)
+	local selected_entry = state.get_selected_entry()
+	if selected_entry == nil then
+		actions.close(prompt_bufnr)
+		return
+	end
+	local dir = selected_entry.value
+	actions.close(prompt_bufnr)
+	vim.cmd("cd " .. dir)
+end
+
+local function explore_projects(opts)
+	opts = opts or {}
+	pickers
+		.new(opts, {
+			prompt_title = "Project Explorer",
+			finder = create_finder(),
+			previewer = false,
+			sorter = telescope_config.generic_sorter(opts),
+			attach_mappings = function(prompt_bufnr)
+				local on_project_selected = function()
+					change_working_directory(prompt_bufnr)
+				end
+				actions.select_default:replace(on_project_selected)
+				return true
+			end,
+		})
+		:find()
+end
+
+-- Expose the main function
+M.explore_projects = explore_projects
+
+return M
