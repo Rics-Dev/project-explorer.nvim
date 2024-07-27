@@ -90,6 +90,7 @@ local function change_working_directory(prompt_bufnr)
 	local dir = selected_entry.value
 	actions.close(prompt_bufnr)
 	vim.cmd("cd " .. dir)
+	vim.cmd("bdelete")
 end
 
 local function explore_projects(opts)
