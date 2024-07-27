@@ -32,7 +32,7 @@ local function get_dev_projects()
 		local max_depth = depth + 1
 		local clean_path = path:gsub("%*", "")
 		local command = string.format(
-			"find %s -mindepth %d -maxdepth %d -type d -not -path '*/.git/*'",
+			"find %s -mindepth %d -maxdepth %d -type d -not -name '.git'",
 			clean_path,
 			min_depth,
 			max_depth
