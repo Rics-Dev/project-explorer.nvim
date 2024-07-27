@@ -12,20 +12,33 @@ local actions = require("telescope.actions")
 local state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
--- [Your existing code goes here, but rename the main function]
-
+local config = require("project_explorer.config")
+---
 ----------
 -- Actions
 ----------
 
+local function get_depth_from_path(path)
+	local _, count = path:gsub("%*", "")
+	return count
+end
+
 local function get_dev_projects()
 	local projects = {}
-	local handle = io.popen("find ~/dev -mindepth 2 -maxdepth 2 -type d")
-	if handle then
-		for line in handle:lines() do
-			table.insert(projects, line)
+	--	local handle = io.popen("find ~/dev -mindepth 2 -maxdepth 2 -type d")
+	for _, path in ipairs(config.config.paths) do
+		local depth = get_depth_from_path(path)
+		local min_depth = depth + 1
+		local max_depth = depth + 1
+		local clean_path = path:gsub("%*", "")
+		local command = string.format("find %s -mindepth %d -maxdepth %d -type d", clean_path, min_depth, max_depth)
+		local handle = io.popen(command)
+		if handle then
+			for line in handle:lines() do
+				table.insert(projects, line)
+			end
+			handle:close()
 		end
-		handle:close()
 	end
 	return projects
 end

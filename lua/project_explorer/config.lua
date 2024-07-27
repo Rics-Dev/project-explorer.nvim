@@ -1,7 +1,7 @@
 local M = {}
 
 M.config = {
-	-- Add any default configuration options here
+	paths = { "~/dev", "~/projects" }, -- Default paths
 }
 
 return M
