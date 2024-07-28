@@ -17,6 +17,31 @@ local config = require("project_explorer.config")
 ----------
 -- Actions
 ----------
+local function get_favorites_file()
+	return vim.fn.stdpath("data") .. "/project_explorer_favorites.txt"
+end
+
+local function load_favorites()
+	local favorites = {}
+	local file = io.open(get_favorites_file(), "r")
+	if file then
+		for line in file:lines() do
+			favorites[line] = true
+		end
+		file:close()
+	end
+	return favorites
+end
+
+local function save_favorites(favorites)
+	local file = io.open(get_favorites_file(), "w")
+	if file then
+		for path, _ in pairs(favorites) do
+			file:write(path .. "\n")
+		end
+		file:close()
+	end
+end
 
 local function get_depth_from_path(path)
 	local _, count = path:gsub("%*", "")
@@ -50,21 +75,20 @@ end
 
 local function create_finder()
 	local results = get_dev_projects()
+	local favorites = load_favorites()
 
 	local displayer = entry_display.create({
 		separator = " ",
 		items = {
-			{
-				width = 30,
-			},
-			{
-				remaining = true,
-			},
+			{ width = 2 },
+			{ width = 30 },
+			{ remaining = true },
 		},
 	})
 
 	local function make_display(entry)
-		return displayer({ entry.name, { entry.value, "Comment" } })
+		local favorite_icon = entry.is_favorite and "★" or "☆"
+		return displayer({ favorite_icon, entry.name, { entry.value, "Comment" } })
 	end
 
 	return finders.new_table({
@@ -76,6 +100,7 @@ local function create_finder()
 				name = name,
 				value = entry,
 				ordinal = name .. " " .. entry,
+				is_favorite = favorites[entry] or false,
 			}
 		end,
 	})
@@ -95,7 +120,26 @@ local function change_working_directory(prompt_bufnr)
 	vim.cmd("Neotree" .. dir)
 	--vim.cmd("Explore")
 end
+local function toggle_favorite(callback)
+	local selected_entry = state.get_selected_entry()
+	if selected_entry == nil then
+		return
+	end
 
+	local favorites = load_favorites()
+	local path = selected_entry.value
+
+	if favorites[path] then
+		favorites[path] = nil
+	else
+		favorites[path] = true
+	end
+
+	save_favorites(favorites)
+	callback()
+	-- actions.close(prompt_bufnr)
+	-- explore_projects()
+end
 local function add_project(callback)
 	local project_name = vim.fn.input("Enter new project name: ")
 	if project_name == "" then
@@ -177,6 +221,13 @@ local function explore_projects(opts)
 					end)
 
 					map({ "i", "n" }, "<C-d>", on_delete_project)
+					-- Add favorite toggling
+					map({ "i", "n" }, "<C-f>", function()
+						toggle_favorite(function()
+							actions.close(prompt_bufnr)
+							recreate_picker()
+						end)
+					end)
 
 					return true
 				end,
@@ -187,6 +238,48 @@ local function explore_projects(opts)
 	recreate_picker()
 end
 
+local function explore_favorite_projects(opts)
+	opts = opts or {}
+
+	local favorites = load_favorites()
+
+	pickers
+		.new(opts, {
+			prompt_title = "Favorite Projects",
+			finder = finders.new_table({
+				results = vim.tbl_keys(favorites),
+				entry_maker = function(entry)
+					local name = vim.fn.fnamemodify(entry, ":t")
+					return {
+						display = function(tbl_entry)
+							return entry_display.create({
+								separator = " ",
+								items = {
+									{ width = 30 },
+									{ remaining = true },
+								},
+							})({ tbl_entry.name, { tbl_entry.value, "Comment" } })
+						end,
+						name = name,
+						value = entry,
+						ordinal = name .. " " .. entry,
+					}
+				end,
+			}),
+			previewer = false,
+			sorter = telescope_config.generic_sorter(opts),
+			attach_mappings = function(prompt_bufnr, map)
+				actions.select_default:replace(function()
+					change_working_directory(prompt_bufnr)
+				end)
+				return true
+			end,
+		})
+		:find()
+end
+
+-- Add this to your return table
+M.explore_favorite_projects = explore_favorite_projects
 -- Expose the main function
 M.explore_projects = explore_projects
 M.add_project = add_project
