@@ -175,7 +175,7 @@ local function explore_projects(opts)
 						end)
 					end)
 
-					map("n", "<C-d>", function()
+					map({ "i", "n" }, "<C-d>", function()
 						actions.select_default:replace(on_delete_project)
 					end)
 
