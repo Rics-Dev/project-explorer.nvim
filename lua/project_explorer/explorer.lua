@@ -138,11 +138,11 @@ local function explore_projects(opts)
 				actions.select_default:replace(on_project_selected)
 
 				map("i", "<C-a>", function()
-					actions.close(prompt_bufnr)
+					--					actions.close(prompt_bufnr)
 					add_project()
 				end)
 				map("n", "<C-a>", function()
-					actions.close(prompt_bufnr)
+					--					actions.close(prompt_bufnr)
 					add_project()
 				end)
 
