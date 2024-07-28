@@ -120,21 +120,21 @@ local function add_project(opts)
 	local action = function(prompt_bufnr)
 		local project_name = state.get_current_line()
 		actions.close(prompt_bufnr)
-
-		-- Ask for the base directory
 		local base_dir = vim.fn.input("Enter base directory for the new project: ", "~/dev/")
-
-		-- Create the full path
-		local full_path = base_dir .. "/" .. project_name
-
-		-- Create the directory
+		local full_path = vim.fn.expand(base_dir .. "/" .. project_name)
+		print("Attempting to create directory: " .. full_path)
 		local success, error_msg = vim.fn.mkdir(full_path, "p")
-		if success then
+		if success == 1 then
 			print("Project directory created: " .. full_path)
-			-- Optionally, change to the new directory
-			vim.cmd("cd " .. full_path)
+			-- Check if the directory exists before changing to it
+			if vim.fn.isdirectory(full_path) == 1 then
+				vim.cmd("cd " .. vim.fn.fnameescape(full_path))
+				print("Changed working directory to: " .. full_path)
+			else
+				print("Directory created but not found. Current working directory: " .. vim.fn.getcwd())
+			end
 		else
-			print("Failed to create project directory: " .. error_msg)
+			print("Failed to create project directory. Error: " .. tostring(error_msg))
 		end
 	end
 
