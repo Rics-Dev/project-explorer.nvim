@@ -120,6 +120,33 @@ local function add_project(callback)
 	callback()
 end
 
+local function delete_project(callback)
+	local selected_entry = state.get_selected_entry()
+	if selected_entry == nil then
+		callback()
+		return
+	end
+
+	local dir = selected_entry.value
+	-- Prompt for confirmation
+	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
+	if confirm:lower() ~= "n" then
+		print("Project deletion cancelled.")
+		callback()
+		return
+	end
+
+	-- Attempt to delete the directory
+	local success, error_msg = os.execute("rm -rf " .. dir)
+	if success then
+		print("Project deleted successfully: " .. dir)
+	else
+		print("Failed to delete project. Error: " .. tostring(error_msg))
+	end
+
+	callback()
+end
+
 local function explore_projects(opts)
 	opts = opts or {}
 
@@ -134,20 +161,24 @@ local function explore_projects(opts)
 					local on_project_selected = function()
 						change_working_directory(prompt_bufnr)
 					end
+					local on_delete_project = function()
+						delete_project(function()
+							recreate_picker()
+						end)
+					end
 					actions.select_default:replace(on_project_selected)
 
-					map("i", "<C-a>", function()
+					map({ "i", "n" }, "<C-a>", function()
 						--						actions.close(prompt_bufnr)
 						add_project(function()
 							recreate_picker()
 						end)
 					end)
-					map("n", "<C-a>", function()
-						--						actions.close(prompt_bufnr)
-						add_project(function()
-							recreate_picker()
-						end)
+
+					map("n", "<C-d>", function()
+						actions.select_default:replace(on_delete_project)
 					end)
+
 					return true
 				end,
 			})
