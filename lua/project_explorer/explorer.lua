@@ -73,7 +73,7 @@ local function get_dev_projects()
 	return projects
 end
 
-local function create_finder()
+local function create_finder(favorites_only)
 	local results = get_dev_projects()
 	local favorites = load_favorites()
 
@@ -87,12 +87,15 @@ local function create_finder()
 	})
 
 	local function make_display(entry)
-		local favorite_icon = entry.is_favorite and "★" or "☆"
+		local favorite_icon = entry.is_favorite and "★" or ""
 		return displayer({ favorite_icon, entry.name, { entry.value, "Comment" } })
 	end
 
 	return finders.new_table({
-		results = results,
+		-- results = results,
+		results = favorites_only and vim.tbl_filter(function(entry)
+			return favorites[entry]
+		end, results) or results,
 		entry_maker = function(entry)
 			local name = vim.fn.fnamemodify(entry, ":t")
 			return {
@@ -140,6 +143,7 @@ local function toggle_favorite(callback)
 	-- actions.close(prompt_bufnr)
 	-- explore_projects()
 end
+
 local function add_project(callback)
 	local project_name = vim.fn.input("Enter new project name: ")
 	if project_name == "" then
@@ -193,12 +197,12 @@ end
 
 local function explore_projects(opts)
 	opts = opts or {}
-
+	local favorites_only = false
 	local function recreate_picker()
 		pickers
 			.new(opts, {
-				prompt_title = "Project Explorer",
-				finder = create_finder(),
+				prompt_title = favorites_only and "Favorite Projects" or "Project Explorer",
+				finder = create_finder(favorites_only),
 				previewer = false,
 				sorter = telescope_config.generic_sorter(opts),
 				attach_mappings = function(prompt_bufnr, map)
@@ -222,11 +226,16 @@ local function explore_projects(opts)
 
 					map({ "i", "n" }, "<C-d>", on_delete_project)
 					-- Add favorite toggling
-					map({ "i", "n" }, "<C-f>", function()
+					map({ "i", "n" }, "<C-S-f>", function()
 						toggle_favorite(function()
 							actions.close(prompt_bufnr)
 							recreate_picker()
 						end)
+					end)
+					map({ "i", "n" }, "<C-f>", function()
+						favorites_only = not favorites_only
+						actions.close(prompt_bufnr)
+						recreate_picker()
 					end)
 
 					return true
@@ -238,48 +247,6 @@ local function explore_projects(opts)
 	recreate_picker()
 end
 
-local function explore_favorite_projects(opts)
-	opts = opts or {}
-
-	local favorites = load_favorites()
-
-	pickers
-		.new(opts, {
-			prompt_title = "Favorite Projects",
-			finder = finders.new_table({
-				results = vim.tbl_keys(favorites),
-				entry_maker = function(entry)
-					local name = vim.fn.fnamemodify(entry, ":t")
-					return {
-						display = function(tbl_entry)
-							return entry_display.create({
-								separator = " ",
-								items = {
-									{ width = 30 },
-									{ remaining = true },
-								},
-							})({ tbl_entry.name, { tbl_entry.value, "Comment" } })
-						end,
-						name = name,
-						value = entry,
-						ordinal = name .. " " .. entry,
-					}
-				end,
-			}),
-			previewer = false,
-			sorter = telescope_config.generic_sorter(opts),
-			attach_mappings = function(prompt_bufnr, map)
-				actions.select_default:replace(function()
-					change_working_directory(prompt_bufnr)
-				end)
-				return true
-			end,
-		})
-		:find()
-end
-
--- Add this to your return table
-M.explore_favorite_projects = explore_favorite_projects
 -- Expose the main function
 M.explore_projects = explore_projects
 M.add_project = add_project
