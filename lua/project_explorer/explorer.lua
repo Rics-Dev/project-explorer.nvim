@@ -125,6 +125,12 @@ local function explore_projects(opts)
 					end,
 				})
 
+				-- Add Ctrl+A mapping to add a project
+				actions.map_normal(prompt_bufnr, "<C-a>", function()
+					actions.close(prompt_bufnr)
+					add_project()
+				end)
+
 				return true
 			end,
 		})
