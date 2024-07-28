@@ -1,3 +1,4 @@
+require("lfs")
 local M = {}
 
 local has_telescope = pcall(require, "telescope")
@@ -128,8 +129,7 @@ local function add_project(opts)
 		local full_path = base_dir .. "/" .. project_name
 
 		-- Create the directory
-		local success, error_msg = pcall(vim.fn.mkdir, full_path, "p")
-
+		local success, error_msg = lfs.mkdir(full_path)
 		if success then
 			print("Project directory created: " .. full_path)
 			-- Optionally, change to the new directory
