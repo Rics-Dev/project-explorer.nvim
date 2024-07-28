@@ -1,4 +1,4 @@
-require("lfs")
+local lfs = require("lfs")
 local M = {}
 
 local has_telescope = pcall(require, "telescope")
