@@ -91,7 +91,8 @@ local function change_working_directory(prompt_bufnr)
 	actions.close(prompt_bufnr)
 	vim.cmd("cd " .. dir)
 	vim.cmd("bdelete")
-	vim.cmd("Neotree" .. dir)
+	--vim.cmd("Neotree" .. dir)
+	vim.cmd("Explore")
 end
 
 local function explore_projects(opts)
