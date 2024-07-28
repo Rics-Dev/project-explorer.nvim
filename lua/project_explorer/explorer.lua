@@ -163,21 +163,20 @@ local function explore_projects(opts)
 					end
 					local on_delete_project = function()
 						delete_project(function()
+							actions.close(prompt_bufnr)
 							recreate_picker()
 						end)
 					end
 					actions.select_default:replace(on_project_selected)
 
 					map({ "i", "n" }, "<C-a>", function()
-						--						actions.close(prompt_bufnr)
 						add_project(function()
+							actions.close(prompt_bufnr)
 							recreate_picker()
 						end)
 					end)
 
-					map({ "i", "n" }, "<C-d>", function()
-						actions.select_default:replace(on_delete_project)
-					end)
+					map({ "i", "n" }, "<C-d>", on_delete_project)
 
 					return true
 				end,
