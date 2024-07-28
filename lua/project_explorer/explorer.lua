@@ -130,7 +130,7 @@ local function delete_project(callback)
 	local dir = selected_entry.value
 	-- Prompt for confirmation
 	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
-	if confirm:lower() ~= "n" then
+	if confirm:lower() ~= "y" then
 		print("Project deletion cancelled.")
 		callback()
 		return
