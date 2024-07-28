@@ -114,6 +114,9 @@ local function add_project()
 		-- Check if the directory exists before changing to it
 		if vim.fn.isdirectory(full_path) == 1 then
 			vim.cmd("cd " .. vim.fn.fnameescape(full_path))
+			vim.cmd("bdelete")
+			vim.cmd("Neotree" .. vim.fn.fnameescape(full_path))
+
 			print("Changed working directory to: " .. full_path)
 		else
 			print("Directory created but not found. Current working directory: " .. vim.fn.getcwd())
