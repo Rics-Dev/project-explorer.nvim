@@ -1,5 +1,4 @@
 local M = {}
-
 local has_telescope = pcall(require, "telescope")
 if not has_telescope then
 	return M
@@ -11,13 +10,11 @@ local telescope_config = require("telescope.config").values
 local actions = require("telescope.actions")
 local state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
-
 local config = require("project_explorer.config")
----
+
 ----------
 -- Actions
 ----------
-
 local function get_depth_from_path(path)
 	local _, count = path:gsub("%*", "")
 	return count
@@ -25,7 +22,6 @@ end
 
 local function get_dev_projects()
 	local projects = {}
-	--	local handle = io.popen("find ~/dev -mindepth 2 -maxdepth 2 -type d")
 	for _, path in ipairs(config.config.paths) do
 		local depth = get_depth_from_path(path)
 		local min_depth = depth + 1
@@ -50,7 +46,6 @@ end
 
 local function create_finder()
 	local results = get_dev_projects()
-
 	local displayer = entry_display.create({
 		separator = " ",
 		items = {
@@ -62,11 +57,9 @@ local function create_finder()
 			},
 		},
 	})
-
 	local function make_display(entry)
 		return displayer({ entry.name, { entry.value, "Comment" } })
 	end
-
 	return finders.new_table({
 		results = results,
 		entry_maker = function(entry)
@@ -93,7 +86,20 @@ local function change_working_directory(prompt_bufnr)
 	vim.cmd("cd " .. dir)
 	vim.cmd("bdelete")
 	vim.cmd("Neotree" .. dir)
-	--vim.cmd("Explore")
+end
+
+local function add_project()
+	vim.ui.input({ prompt = "Enter project path: " }, function(input)
+		if input then
+			local full_path = vim.fn.fnamemodify(input, ":p:h")
+			if vim.fn.isdirectory(full_path) == 1 then
+				table.insert(config.config.paths, full_path)
+				print("Project added: " .. full_path)
+			else
+				print("Invalid directory path")
+			end
+		end
+	end)
 end
 
 local function explore_projects(opts)
@@ -109,13 +115,24 @@ local function explore_projects(opts)
 					change_working_directory(prompt_bufnr)
 				end
 				actions.select_default:replace(on_project_selected)
+
+				-- Add a new mapping to add a project
+				actions.select_default:enhance({
+					post = function()
+						vim.schedule(function()
+							add_project()
+						end)
+					end,
+				})
+
 				return true
 			end,
 		})
 		:find()
 end
 
--- Expose the main function
+-- Expose the main functions
 M.explore_projects = explore_projects
+M.add_project = add_project
 
 return M
