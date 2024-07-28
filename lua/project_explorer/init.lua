@@ -10,9 +10,9 @@ function M.setup(opts)
 	vim.api.nvim_create_user_command("ProjectExplorer", function(cmd_opts)
 		require("project_explorer.explorer").explore_projects(cmd_opts)
 	end, {})
-
-	vim.api.nvim_create_user_command("ProjectCreate", function(cmd_opts)
-		require("project_explorer.explorer").add_project()
+	-- Create a new user command for AddProject
+	vim.api.nvim_create_user_command("AddProject", function(cmd_opts)
+		require("project_explorer.explorer").add_project(cmd_opts)
 	end, {})
 end
 

@@ -96,22 +96,6 @@ local function change_working_directory(prompt_bufnr)
 	--vim.cmd("Explore")
 end
 
-local function add_project()
-	vim.ui.input({ prompt = "Enter project name: " }, function(input)
-		if input and input ~= "" then
-			for _, path in ipairs(config.config.paths) do
-				local clean_path = path:gsub("%*", "")
-				local project_path = clean_path .. "/" .. input
-				local command = string.format("mkdir -p %s", project_path)
-				os.execute(command)
-				vim.notify("Project created at: " .. project_path)
-			end
-		else
-			vim.notify("Invalid project name", vim.log.levels.ERROR)
-		end
-	end)
-end
-
 local function explore_projects(opts)
 	opts = opts or {}
 	pickers
@@ -121,13 +105,57 @@ local function explore_projects(opts)
 			previewer = false,
 			sorter = telescope_config.generic_sorter(opts),
 			attach_mappings = function(prompt_bufnr)
-				actions.select_default:replace(function()
+				local on_project_selected = function()
 					change_working_directory(prompt_bufnr)
-				end)
-				actions._goto_file_selection_split:replace(function()
-					add_project()
-					actions.close(prompt_bufnr)
-				end)
+				end
+				actions.select_default:replace(on_project_selected)
+				return true
+			end,
+		})
+		:find()
+end
+
+local function add_project(opts)
+	opts = opts or {}
+	local action = function(prompt_bufnr)
+		local project_name = state.get_current_line()
+		actions.close(prompt_bufnr)
+
+		-- Ask for the base directory
+		local base_dir = vim.fn.input("Enter base directory for the new project: ", "~/dev/")
+
+		-- Create the full path
+		local full_path = base_dir .. "/" .. project_name
+
+		-- Create the directory
+		local success, error_msg = pcall(vim.fn.mkdir, full_path, "p")
+
+		if success then
+			print("Project directory created: " .. full_path)
+			-- Optionally, change to the new directory
+			vim.cmd("cd " .. full_path)
+		else
+			print("Failed to create project directory: " .. error_msg)
+		end
+	end
+
+	pickers
+		.new(opts, {
+			prompt_title = "Add New Project",
+			finder = finders.new_table({
+				results = { "" },
+				entry_maker = function(entry)
+					return {
+						value = entry,
+						display = entry,
+						ordinal = entry,
+					}
+				end,
+			}),
+			sorter = telescope_config.generic_sorter(opts),
+			attach_mappings = function(prompt_bufnr, map)
+				map("i", "<CR>", action)
+				map("n", "<CR>", action)
 				return true
 			end,
 		})
@@ -136,5 +164,6 @@ end
 
 -- Expose the main function
 M.explore_projects = explore_projects
+M.add_project = add_project
 
 return M
