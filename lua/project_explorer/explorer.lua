@@ -96,6 +96,33 @@ local function change_working_directory(prompt_bufnr)
 	--vim.cmd("Explore")
 end
 
+local function add_project()
+	local project_name = vim.fn.input("Enter new project name: ")
+	if project_name == "" then
+		print("Project name cannot be empty.")
+		return
+	end
+
+	local base_dir = vim.fn.input("Enter base directory for the new project: ", "~/dev/")
+	local full_path = vim.fn.expand(base_dir .. "/" .. project_name)
+
+	print("Attempting to create directory: " .. full_path)
+
+	local success, error_msg = vim.fn.mkdir(full_path, "p")
+	if success == 1 then
+		print("Project directory created: " .. full_path)
+		-- Check if the directory exists before changing to it
+		if vim.fn.isdirectory(full_path) == 1 then
+			vim.cmd("cd " .. vim.fn.fnameescape(full_path))
+			print("Changed working directory to: " .. full_path)
+		else
+			print("Directory created but not found. Current working directory: " .. vim.fn.getcwd())
+		end
+	else
+		print("Failed to create project directory. Error: " .. tostring(error_msg))
+	end
+end
+
 local function explore_projects(opts)
 	opts = opts or {}
 	pickers
@@ -104,57 +131,21 @@ local function explore_projects(opts)
 			finder = create_finder(),
 			previewer = false,
 			sorter = telescope_config.generic_sorter(opts),
-			attach_mappings = function(prompt_bufnr)
+			attach_mappings = function(prompt_bufnr, map)
 				local on_project_selected = function()
 					change_working_directory(prompt_bufnr)
 				end
 				actions.select_default:replace(on_project_selected)
-				return true
-			end,
-		})
-		:find()
-end
 
-local function add_project(opts)
-	opts = opts or {}
-	local action = function(prompt_bufnr)
-		local project_name = state.get_current_line()
-		actions.close(prompt_bufnr)
-		local base_dir = vim.fn.input("Enter base directory for the new project: ", "~/dev/")
-		local full_path = vim.fn.expand(base_dir .. "/" .. project_name)
-		print("Attempting to create directory: " .. full_path)
-		local success, error_msg = vim.fn.mkdir(full_path, "p")
-		if success == 1 then
-			print("Project directory created: " .. full_path)
-			-- Check if the directory exists before changing to it
-			if vim.fn.isdirectory(full_path) == 1 then
-				vim.cmd("cd " .. vim.fn.fnameescape(full_path))
-				print("Changed working directory to: " .. full_path)
-			else
-				print("Directory created but not found. Current working directory: " .. vim.fn.getcwd())
-			end
-		else
-			print("Failed to create project directory. Error: " .. tostring(error_msg))
-		end
-	end
+				map("i", "<C-a>", function()
+					actions.close(prompt_bufnr)
+					add_project()
+				end)
+				map("n", "<C-a>", function()
+					actions.close(prompt_bufnr)
+					add_project()
+				end)
 
-	pickers
-		.new(opts, {
-			prompt_title = "Add New Project",
-			finder = finders.new_table({
-				results = { "" },
-				entry_maker = function(entry)
-					return {
-						value = entry,
-						display = entry,
-						ordinal = entry,
-					}
-				end,
-			}),
-			sorter = telescope_config.generic_sorter(opts),
-			attach_mappings = function(prompt_bufnr, map)
-				map("i", "<CR>", action)
-				map("n", "<CR>", action)
 				return true
 			end,
 		})
