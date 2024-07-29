@@ -8,7 +8,6 @@ Simple project manager and explorer for neovim
 
 - List Projects based of pattern
 - Create new projects directory
-- Delete projects directory
 - Add projects to favorites
 - List favorites projects only
 
@@ -21,6 +20,8 @@ return {
   "Rics-Dev/project-explorer.nvim",
   dependencies = {
     "nvim-telescope/telescope.nvim",
+    "prichrd/netrw.nvim",
+    "nvim-tree/nvim-web-devicons", --optional
   },
   opts = {
     paths = { "~/dev/*", "~/dev" }, -- Custom paths
@@ -44,6 +45,5 @@ you can also open it by executing `:ProjectExplorer`
 
 - To cd into a project just press `Enter` on the selected project.
 - To Add a project use `<C-a>`.
-- To delete a project use `<C-d>`.
 - To add a project to favorite projects use `<C-S-f>` ( Favorite projects are marked with ⭐).
 - To display favorite projects only use `<C-f>`.

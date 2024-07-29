@@ -169,42 +169,42 @@ local function add_project(callback)
 	callback()
 end
 
-local function delete_project(prompt_bufnr)
-	local selected_entry = state.get_selected_entry()
-	if selected_entry == nil then
-		actions.close(prompt_bufnr)
-		return
-	end
-	local dir = selected_entry.value
-	-- Prompt for confirmation
-	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
-	if confirm:lower() ~= "y" then
-		print("Project deletion cancelled.")
-		return
-	end
-
-	-- Change to home directory
-	local home_dir = os.getenv("HOME")
-	if not home_dir then
-		print("Failed to get home directory.")
-		return
-	end
-
-	local success, error_msg = vim.cmd("cd " .. home_dir)
-	if not success then
-		print("Failed to change to home directory. Error: " .. tostring(error_msg))
-		return
-	end
-
-	-- Attempt to delete the directory
-	success, error_msg = os.execute("rm -rf " .. dir)
-	if success then
-		actions.close(prompt_bufnr)
-		print("Project deleted successfully: " .. dir)
-	else
-		print("Failed to delete project. Error: " .. tostring(error_msg))
-	end
-end
+-- local function delete_project(prompt_bufnr)
+-- 	local selected_entry = state.get_selected_entry()
+-- 	if selected_entry == nil then
+-- 		actions.close(prompt_bufnr)
+-- 		return
+-- 	end
+-- 	local dir = selected_entry.value
+-- 	-- Prompt for confirmation
+-- 	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
+-- 	if confirm:lower() ~= "y" then
+-- 		print("Project deletion cancelled.")
+-- 		return
+-- 	end
+--
+-- 	-- Change to home directory
+-- 	local home_dir = os.getenv("HOME")
+-- 	if not home_dir then
+-- 		print("Failed to get home directory.")
+-- 		return
+-- 	end
+--
+-- 	local success, error_msg = vim.cmd("cd " .. home_dir)
+-- 	if not success then
+-- 		print("Failed to change to home directory. Error: " .. tostring(error_msg))
+-- 		return
+-- 	end
+--
+-- 	-- Attempt to delete the directory
+-- 	success, error_msg = os.execute("rm -rf " .. dir)
+-- 	if success then
+-- 		actions.close(prompt_bufnr)
+-- 		print("Project deleted successfully: " .. dir)
+-- 	else
+-- 		print("Failed to delete project. Error: " .. tostring(error_msg))
+-- 	end
+-- end
 
 local function explore_projects(opts)
 	opts = opts or {}
@@ -220,9 +220,9 @@ local function explore_projects(opts)
 					local on_project_selected = function()
 						change_working_directory(prompt_bufnr)
 					end
-					local on_delete_project = function()
-						delete_project(prompt_bufnr)
-					end
+					-- local on_delete_project = function()
+					-- 	delete_project(prompt_bufnr)
+					-- end
 					actions.select_default:replace(on_project_selected)
 
 					map({ "i", "n" }, "<C-a>", function()
@@ -232,7 +232,7 @@ local function explore_projects(opts)
 						end)
 					end)
 
-					map({ "i", "n" }, "<C-d>", on_delete_project)
+					-- map({ "i", "n" }, "<C-d>", on_delete_project)
 					-- Add favorite toggling
 					map({ "i", "n" }, "<C-S-f>", function()
 						toggle_favorite(function()
