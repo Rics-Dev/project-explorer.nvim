@@ -2,6 +2,8 @@
 
 Simple project manager and explorer for neovim
 
+![Screenshot](./doc/Screenshot1.png)
+
 ## Features
 
 - List Projects based of pattern
