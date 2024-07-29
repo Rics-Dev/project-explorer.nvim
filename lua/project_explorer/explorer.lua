@@ -174,7 +174,6 @@ local function delete_project(callback)
 		callback()
 		return
 	end
-
 	local dir = selected_entry.value
 	-- Prompt for confirmation
 	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
@@ -184,14 +183,28 @@ local function delete_project(callback)
 		return
 	end
 
+	-- Change to home directory
+	local home_dir = os.getenv("HOME")
+	if not home_dir then
+		print("Failed to get home directory.")
+		callback()
+		return
+	end
+
+	local success, error_msg = os.execute("cd " .. home_dir)
+	if not success then
+		print("Failed to change to home directory. Error: " .. tostring(error_msg))
+		callback()
+		return
+	end
+
 	-- Attempt to delete the directory
-	local success, error_msg = os.execute("rm -rf " .. dir)
+	success, error_msg = os.execute("rm -rf " .. dir)
 	if success then
 		print("Project deleted successfully: " .. dir)
 	else
 		print("Failed to delete project. Error: " .. tostring(error_msg))
 	end
-
 	callback()
 end
 
