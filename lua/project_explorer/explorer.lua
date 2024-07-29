@@ -117,11 +117,11 @@ local function change_working_directory(prompt_bufnr)
 	end
 	local dir = selected_entry.value
 	actions.close(prompt_bufnr)
-	vim.cmd("Neotree close")
+	-- vim.cmd("Neotree close")
 	vim.cmd("cd " .. dir)
 	vim.cmd("bdelete")
-	vim.cmd("Neotree" .. dir)
-	--vim.cmd("Explore")
+	-- vim.cmd("Neotree" .. dir)
+	vim.cmd("Explore")
 end
 local function toggle_favorite(callback)
 	local selected_entry = state.get_selected_entry()
