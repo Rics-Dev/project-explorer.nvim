@@ -21,7 +21,6 @@ return {
   dependencies = {
     "nvim-telescope/telescope.nvim",
     "prichrd/netrw.nvim",
-    "nvim-tree/nvim-web-devicons", --optional
   },
   opts = {
     paths = { "~/dev/*", "~/dev" }, -- Custom paths
