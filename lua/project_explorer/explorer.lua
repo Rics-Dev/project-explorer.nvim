@@ -175,6 +175,15 @@ local function delete_project(callback)
 		return
 	end
 	local dir = selected_entry.value
+
+	-- Check if directory exists
+	local dir_exists = vim.loop.fs_stat(dir)
+	if not dir_exists then
+		print("Directory does not exist: " .. dir)
+		callback()
+		return
+	end
+
 	-- Prompt for confirmation
 	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
 	if confirm:lower() ~= "y" then
@@ -183,23 +192,11 @@ local function delete_project(callback)
 		return
 	end
 
-	-- Change to home directory
-	local home_dir = os.getenv("HOME")
-	if not home_dir then
-		print("Failed to get home directory.")
-		callback()
-		return
-	end
+	-- Attempt to delete the directory using vim.loop.fs_rmdir
+	local success, error_msg = pcall(function()
+		vim.loop.fs_rmdir(dir)
+	end)
 
-	local success, error_msg = os.execute("cd " .. home_dir)
-	if not success then
-		print("Failed to change to home directory. Error: " .. tostring(error_msg))
-		callback()
-		return
-	end
-
-	-- Attempt to delete the directory
-	success, error_msg = os.execute("rm -rf " .. dir)
 	if success then
 		print("Project deleted successfully: " .. dir)
 	else
