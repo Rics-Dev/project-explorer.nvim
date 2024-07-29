@@ -123,6 +123,7 @@ local function change_working_directory(prompt_bufnr)
 	-- vim.cmd("Neotree" .. dir)
 	vim.cmd("Explore")
 end
+
 local function toggle_favorite(callback)
 	local selected_entry = state.get_selected_entry()
 	if selected_entry == nil then
@@ -168,41 +169,41 @@ local function add_project(callback)
 	callback()
 end
 
-local function delete_project(callback)
+local function delete_project(prompt_bufnr)
 	local selected_entry = state.get_selected_entry()
 	if selected_entry == nil then
-		callback()
+		actions.close(prompt_bufnr)
 		return
 	end
 	local dir = selected_entry.value
-
-	-- Check if directory exists
-	local dir_exists = vim.loop.fs_stat(dir)
-	if not dir_exists then
-		print("Directory does not exist: " .. dir)
-		callback()
-		return
-	end
-
 	-- Prompt for confirmation
 	local confirm = vim.fn.input("Are you sure you want to delete " .. dir .. "? (y/n): ")
 	if confirm:lower() ~= "y" then
 		print("Project deletion cancelled.")
-		callback()
 		return
 	end
 
-	-- Attempt to delete the directory using vim.loop.fs_rmdir
-	local success, error_msg = pcall(function()
-		vim.loop.fs_rmdir(dir)
-	end)
+	-- Change to home directory
+	local home_dir = os.getenv("HOME")
+	if not home_dir then
+		print("Failed to get home directory.")
+		return
+	end
 
+	local success, error_msg = vim.cmd("cd " .. home_dir)
+	if not success then
+		print("Failed to change to home directory. Error: " .. tostring(error_msg))
+		return
+	end
+
+	-- Attempt to delete the directory
+	success, error_msg = os.execute("rm -rf " .. dir)
 	if success then
+		actions.close(prompt_bufnr)
 		print("Project deleted successfully: " .. dir)
 	else
 		print("Failed to delete project. Error: " .. tostring(error_msg))
 	end
-	callback()
 end
 
 local function explore_projects(opts)
@@ -220,10 +221,7 @@ local function explore_projects(opts)
 						change_working_directory(prompt_bufnr)
 					end
 					local on_delete_project = function()
-						delete_project(function()
-							actions.close(prompt_bufnr)
-							recreate_picker()
-						end)
+						delete_project(prompt_bufnr)
 					end
 					actions.select_default:replace(on_project_selected)
 
