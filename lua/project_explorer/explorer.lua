@@ -286,7 +286,7 @@ local function explore_projects(opts)
 
 					-- map({ "i", "n" }, "<C-d>", on_delete_project)
 					-- Add favorite toggling
-					map({ "i", "n" }, "<C-S-f>", function()
+					map({ "i", "n" }, "<C-A-f>", function()
 						toggle_favorite(function()
 							actions.close(prompt_bufnr)
 							recreate_picker()

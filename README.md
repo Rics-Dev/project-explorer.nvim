@@ -23,7 +23,7 @@ return {
   },
   opts = {
     paths = { "~/dev/*" }, --custom path set by user
-    file_explorer = function(dir) --custom file explorer set by user, default is netrw
+    file_explorer = function(dir) -- default is netrw
       vim.cmd("Neotree close")
       vim.cmd("Neotree " .. dir)
     end,
@@ -49,5 +49,5 @@ you can also open it by executing `:ProjectExplorer`
 
 - To cd into a project just press `Enter` on the selected project.
 - To Add a project use `<C-a>`.
-- To add a project to favorite projects use `<C-S-f>` ( Favorite projects are marked with ⭐).
+- To add a project to favorite projects use `<C-A-f>`
 - To display favorite projects only use `<C-f>`.
