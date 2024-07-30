@@ -21,6 +21,41 @@ local function get_favorites_file()
 	return vim.fn.stdpath("data") .. "/project_explorer_favorites.txt"
 end
 
+local function get_last_opened_file()
+	return vim.fn.stdpath("data") .. "/project_explorer_last_opened.txt"
+end
+
+local function load_last_opened()
+	local last_opened = {}
+	local file = io.open(get_last_opened_file(), "r")
+	if file then
+		for line in file:lines() do
+			local path, timestamp = line:match("(.+),(%d+)")
+			if path and timestamp then
+				last_opened[path] = tonumber(timestamp)
+			end
+		end
+		file:close()
+	end
+	return last_opened
+end
+
+local function save_last_opened(last_opened)
+	local file = io.open(get_last_opened_file(), "w")
+	if file then
+		for path, timestamp in pairs(last_opened) do
+			file:write(string.format("%s,%d\n", path, timestamp))
+		end
+		file:close()
+	end
+end
+
+local function update_last_opened(path)
+	local last_opened = load_last_opened()
+	last_opened[path] = os.time()
+	save_last_opened(last_opened)
+end
+
 local function load_favorites()
 	local favorites = {}
 	local file = io.open(get_favorites_file(), "r")
@@ -83,6 +118,14 @@ end
 local function create_finder(favorites_only)
 	local results = get_dev_projects()
 	local favorites = load_favorites()
+	local last_opened = load_last_opened()
+
+	-- Sort results by last opened time
+	table.sort(results, function(a, b)
+		local time_a = last_opened[a] or 0
+		local time_b = last_opened[b] or 0
+		return time_a > time_b
+	end)
 
 	local displayer = entry_display.create({
 		separator = " ",
@@ -129,6 +172,13 @@ local function change_working_directory(prompt_bufnr)
 	vim.cmd("bdelete")
 	-- vim.cmd("Neotree" .. dir)
 	vim.cmd("Explore")
+
+	update_last_opened(dir)
+
+	--open the post_open_hook if set
+	if config.config.post_open_hook then
+		config.config.post_open_hook(dir)
+	end
 end
 
 local function toggle_favorite(callback)
