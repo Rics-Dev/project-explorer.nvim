@@ -2,6 +2,7 @@ local M = {}
 
 M.config = {
 	paths = { "~/dev", "~/projects" }, -- Default paths
+	file_explorer = nil,
 	post_open_hook = function(dir)
 		-- Save the current session before switching
 		require("project_explorer").save_current_session()
@@ -17,7 +18,11 @@ M.config = {
 		if vim.fn.filereadable(session_file) == 1 then
 			vim.cmd("source " .. session_file)
 		else
-			vim.cmd("Explore")
+			if M.config.file_explorer then
+				M.config.file_explorer(dir)
+			else
+				vim.cmd("Explore")
+			end
 		end
 	end,
 }
