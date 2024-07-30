@@ -23,7 +23,7 @@ return {
   },
   opts = {
     paths = { "~/dev/*" }, --custom path set by user
-    file_explorer = function(dir) --custom file explorer set by user
+    file_explorer = function(dir) --custom file explorer set by user, default is netrw
       vim.cmd("Neotree close")
       vim.cmd("Neotree " .. dir)
     end,
