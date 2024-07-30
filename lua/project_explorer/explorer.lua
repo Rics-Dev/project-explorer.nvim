@@ -167,18 +167,13 @@ local function change_working_directory(prompt_bufnr)
 	end
 	local dir = selected_entry.value
 	actions.close(prompt_bufnr)
-	-- vim.cmd("Neotree close")
-	vim.cmd("cd " .. dir)
-	vim.cmd("bdelete")
-	-- vim.cmd("Neotree" .. dir)
-	vim.cmd("Explore")
 
-	update_last_opened(dir)
-
-	--open the post_open_hook if set
+	-- Call the post_open_hook
 	if config.config.post_open_hook then
 		config.config.post_open_hook(dir)
 	end
+
+	update_last_opened(dir)
 end
 
 local function toggle_favorite(callback)
