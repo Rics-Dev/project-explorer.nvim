@@ -205,7 +205,7 @@ local function add_project(callback)
 	end
 	local base_dir
 	if config.config.newProjectPath then
-		base_dir = config.config.newProjectPath
+		base_dir = vim.fn.input("Enter base directory for the new project: ", config.config.newProjectPath)
 	else
 		base_dir = vim.fn.input("Enter base directory for the new project: ", "~/")
 	end
