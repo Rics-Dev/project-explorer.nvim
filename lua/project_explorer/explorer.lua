@@ -204,14 +204,7 @@ local function add_project(callback)
 		callback()
 		return
 	end
-
-	local base_dir = { "~/" }
-	if config.config.newProjectPath then
-		base_dir = config.config.newProjectPath
-	else
-		base_dir = vim.fn.input("Enter base directory for the new project: ", "~/")
-	end
-
+	local base_dir = vim.fn.input("Enter base directory for the new project: ", "~/")
 	local full_path = vim.fn.expand(base_dir .. "/" .. project_name)
 	print("Attempting to create directory: " .. full_path)
 	local success, error_msg = vim.fn.mkdir(full_path, "p")
