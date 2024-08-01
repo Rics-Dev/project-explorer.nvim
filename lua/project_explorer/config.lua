@@ -2,6 +2,7 @@ local M = {}
 
 M.config = {
 	paths = { "~/dev", "~/projects" }, -- Default paths
+	newProjectPath = nil,
 	file_explorer = nil,
 	post_open_hook = function(dir)
 		-- Save the current session before switching
