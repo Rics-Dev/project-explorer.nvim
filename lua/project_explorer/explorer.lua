@@ -143,7 +143,9 @@ local function create_finder(favorites_only)
 			return favorites[entry]
 		end, results) or results,
 		entry_maker = function(entry)
-			local name = vim.fn.fnamemodify(entry, ":t")
+			-- Removes the trailing slash that is always included within windows
+			local normalized_path = vim.fn.fnamemodify(entry, ":p:h")
+			local name = vim.fn.fnamemodify(normalized_path, ":t")
 			return {
 				display = make_display,
 				name = name,
