@@ -2,6 +2,7 @@ local M = {}
 
 M.config = {
 	paths = { "~/dev", "~/projects" }, -- Default paths
+	command_pattern = "find %s -mindepth %d -maxdepth %d -type d -not -name '.git'",
 	newProjectPath = nil,
 	file_explorer = nil,
 	post_open_hook = function(dir)

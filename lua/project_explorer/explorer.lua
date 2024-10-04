@@ -97,12 +97,8 @@ local function get_dev_projects()
 			local min_depth = depth + 1
 			local max_depth = depth + 1
 			local clean_path = expanded_path:gsub("%*", "")
-			local command = string.format(
-				"find %s -mindepth %d -maxdepth %d -type d -not -name '.git'",
-				clean_path,
-				min_depth,
-				max_depth
-			)
+			local command = string.format(config.config.command_pattern, clean_path, min_depth, max_depth)
+
 			local handle = io.popen(command)
 			if handle then
 				for line in handle:lines() do
@@ -147,7 +143,9 @@ local function create_finder(favorites_only)
 			return favorites[entry]
 		end, results) or results,
 		entry_maker = function(entry)
-			local name = vim.fn.fnamemodify(entry, ":t")
+			-- Removes the trailing slash that is always included within windows
+			local normalized_path = vim.fn.fnamemodify(entry, ":p:h")
+			local name = vim.fn.fnamemodify(normalized_path, ":t")
 			return {
 				display = make_display,
 				name = name,
